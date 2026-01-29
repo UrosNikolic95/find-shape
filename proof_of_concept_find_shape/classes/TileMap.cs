@@ -10,6 +10,8 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using monogame_cros_platform.enums;
+using proof_of_concept_find_shape.classes;
+using static System.Net.WebRequestMethods;
 
 namespace monogame_cros_platform.classes
 {
@@ -462,33 +464,21 @@ namespace monogame_cros_platform.classes
                 tile.Draw();
             }
 
-            float xMin = float.PositiveInfinity;
-            float yMin = float.PositiveInfinity;
-            float xMax = float.NegativeInfinity;
-            float yMax = float.NegativeInfinity;
-            foreach (Tile tile in chosenHexes)
-            {
-                    if(xMin > tile.xMin) xMin = tile.xMin;
-                    if(yMin > tile.yMin) yMin = tile.yMin;
-                    if(xMax < tile.xMax) xMax = tile.xMax;
-                    if(yMax < tile.yMax) yMax = tile.yMax;
-            }
-            float width = xMax - xMin;
-            float height = yMax - yMin;
-            Vector2 minV = new Vector2(xMin, yMin);
-            Vector2 padding = new Vector2(10,10);
+            TilePoints[] tps = chosenHexes.Select(el => el.currentPoints).ToArray();
+            MinMax mm = new MinMax(tps);
+            float width = mm.xMax - mm.xMin;
+            float height = mm.yMax - mm.yMin;
+            Vector2 minV = new Vector2(mm.xMin, mm.yMin);
+            Vector2 padding = new Vector2(10, 10);
             float scale = 100 / width;
             foreach (Tile tile in chosenHexes)
             {
-                Vector2[] v0 = Helper.addAll(tile.currentPoints, -minV);
-                Vector2[] v1 = Helper.multiplyAll(v0, scale);
-                Vector2[] v2 = Helper.addAll(v1, padding);
-                Vector2 c0 = tile.position - minV;
-                Vector2 c1 = c0 * scale;
-                Vector2 c2 = c1 + padding;
-                Tile.DrawPolygon(gd, v2, tile.color, c2);
+                TilePoints tp = tile.currentPoints;
+                TilePoints tp1 = tp + (-minV);
+                TilePoints tp2 = tp1 * scale;
+                TilePoints tp3 = tp2 + padding;
+                Tile.DrawPolygon(gd, tp3, tile.color);
             }
-
         }
     }
 }

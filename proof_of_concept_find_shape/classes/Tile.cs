@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -10,15 +11,16 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using monogame_cros_platform.enums;
+using proof_of_concept_find_shape.classes;
 
 namespace monogame_cros_platform.classes
 {
     public class Tile
     {
 
-        public Vector2[] previousPoints = new Vector2[6];
-        public Vector2[] _currentPoints = new Vector2[6];
-        public Vector2[] currentPoints
+        public TilePoints previousPoints;
+        public TilePoints _currentPoints;
+        public TilePoints currentPoints
         {
             get
             {
@@ -36,37 +38,26 @@ namespace monogame_cros_platform.classes
         public Vector2 position;
         public Color color = Color.Red;
         public TileMap map;
-        public float xMin;
-        public float yMin;
-        public float xMax;
-        public float yMax;
+        public MinMax minMax;
+
 
 
         public Color displayColor()
         {
             return map.mouseHoveringOverGroup != null && map.mouseHoveringOverGroup.Contains(this) ? Color.White : color;
         }
-   
+
+  
 
         public void calculateMinAndMax()
         {
-            xMin = float.PositiveInfinity;
-            yMin = float.PositiveInfinity;
-            xMax = float.NegativeInfinity;
-            yMax = float.NegativeInfinity;
-            for (int i = 0; i < currentPoints.Length; i++)
-            {
-                if (xMin > currentPoints[i].X) xMin = currentPoints[i].X;
-                if (yMin > currentPoints[i].Y) yMin = currentPoints[i].Y;
-                if (xMax < currentPoints[i].X) xMax = currentPoints[i].X;
-                if (yMax < currentPoints[i].Y) yMax = currentPoints[i].Y;
-            }
+            minMax = new MinMax(currentPoints);
         }
 
         public bool mouseHovering()
         {
             Point p = Mouse.GetState().Position;
-            return xMin < p.X && yMin < p.Y && xMax > p.X && yMax > p.Y;
+            return minMax.xMin < p.X && minMax.yMin < p.Y && minMax.xMax > p.X && minMax.yMax > p.Y;
         }
 
      
@@ -79,29 +70,23 @@ namespace monogame_cros_platform.classes
 
         public void recalculatePoints()
         {
-            for (int i = 0; i < currentPoints.Length; i++)
-            {
-                currentPoints[i] = position + map.tilePrototype[i];
-            }
+            currentPoints = new TilePoints(position, map.tilePrototype);
             calculateMinAndMax();
         }
 
         public void transformPoints()
         {
-            for (int i = 0; i < currentPoints.Length; i++)
-            {
-                previousPoints[i] = currentPoints[i];
-                currentPoints[i] = position + map.tilePrototype[i];
-            }
+            previousPoints = currentPoints;
+            currentPoints = new TilePoints(position, map.tilePrototype);
             calculateMinAndMax();
         }
 
         private static VertexPositionColor transformVectorsToVertexPositionColor(Vector2 v3, Color color)
         {
-                VertexPositionColor vertex = new VertexPositionColor();
-                vertex.Position = new Vector3(v3.X, v3.Y, 0);
-                vertex.Color = color;
-            return vertex;
+             VertexPositionColor vertex = new VertexPositionColor();
+             vertex.Position = new Vector3(v3.X, v3.Y, 0);
+             vertex.Color = color;
+             return vertex;
         }
 
         private static VertexPositionColor[] transformVectorsToVertexPositionColor(Vector2[] v3, Color color)
@@ -113,25 +98,57 @@ namespace monogame_cros_platform.classes
             return vertexPositionColors;
         }
 
-        private Vector2[] midphase()
+        private TilePoints midphase()
         {
-            Vector2[] res = new Vector2[currentPoints.Length];
-            for (int i = 0; i < res.Length; i++)
-            {
-                res[i] = previousPoints[i] + ((currentPoints[i] - previousPoints[i]) * map.transformationPercentage);
-            }
-            return res;
+            return TilePoints.midphase(previousPoints,currentPoints,map.transformationPercentage);
         }
 
    
 
 
-        private Vector2[] points()
+        private TilePoints points()
         {
             if (!map.transforming) return currentPoints;
             if (map.transforming) return midphase();
             return null;
         }
+
+
+        public static void DrawPolygon(GraphicsDevice gd, TilePoints points, Color color)
+        {
+            VertexPositionColor[] vertices = transformVectorsToVertexPositionColor(points.points, color);
+            int triangles = vertices.Length;
+            VertexPositionColor[] indices = new VertexPositionColor[triangles * 3];
+            VertexPositionColor center = transformVectorsToVertexPositionColor(points.position, color);
+            for (int i = 0; i < triangles - 1; i++)
+            {
+                int i0 = i * 3;
+                indices[i0] = center;
+                indices[i0 + 1] = vertices[i];
+                indices[i0 + 2] = vertices[i + 1];
+            }
+            indices[indices.Length - 3] = center;
+            indices[indices.Length - 2] = vertices[vertices.Length - 1];
+            indices[indices.Length - 1] = vertices[0];
+            BasicEffect basicEffect = new BasicEffect(gd)
+            {
+                VertexColorEnabled = true,
+                Projection = Matrix.CreateOrthographicOffCenter(
+                0,
+                gd.Viewport.Width,
+                gd.Viewport.Height,
+                0,
+                0,
+                1
+                )
+            };
+            foreach (EffectPass effectPass in basicEffect.CurrentTechnique.Passes)
+            {
+                effectPass.Apply();
+                gd.DrawUserPrimitives(PrimitiveType.TriangleList, indices, 0, indices.Length / 3);
+            }
+        }
+
 
         public static void DrawPolygon(GraphicsDevice gd, Vector2[] points, Color color, Vector2 position)
         {
@@ -153,10 +170,13 @@ namespace monogame_cros_platform.classes
             {
                 VertexColorEnabled = true,
                 Projection = Matrix.CreateOrthographicOffCenter(
-             0, gd.Viewport.Width,
-             gd.Viewport.Height, 0,
-             0, 1
-         )
+                0, 
+                gd.Viewport.Width,
+                gd.Viewport.Height, 
+                0,
+                0, 
+                1
+                )
             };
             foreach (EffectPass effectPass in basicEffect.CurrentTechnique.Passes)
             {
@@ -167,7 +187,7 @@ namespace monogame_cros_platform.classes
              
         public void Draw()
         {
-            DrawPolygon(map.gd, points(), displayColor(), position);
+            DrawPolygon(map.gd, points(), displayColor());
         }
     }
 }

@@ -54,6 +54,21 @@ namespace monogame_cros_platform.classes
             }
             return r;
         }
+
+        public static Vector2 midphase(Vector2 start, Vector2 end, float percentage)
+        {
+            return start + ((end - start) * percentage);
+        }
+
+        public static Vector2[] midphase(Vector2[] start, Vector2[] end, float percentage)
+        {
+            Vector2[] v = new Vector2[start.Length];
+            for(int i = 0; i < start.Length; i++)
+            {
+                v[i] = midphase(start[i], end[i], percentage);
+            }
+            return v;
+        }
     }
 
 
