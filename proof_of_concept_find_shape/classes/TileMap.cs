@@ -25,7 +25,7 @@ namespace monogame_cros_platform.classes
         public TileTypeEnum type = TileTypeEnum.Hexagon;
         public float mapWidening = 100;
 
-        public bool transforming = false;
+        public int transforming = 0;
         public double transformTime = 0;
         public double transformationLength = 0.25;
 
@@ -254,6 +254,15 @@ namespace monogame_cros_platform.classes
             }
         }
 
+        public void setNextPoints()
+        {
+            Vector2 tileCenterPosition = tileCenter.position;
+            foreach (Tile tile in tiles)
+            {
+                tile.transformNextPoints();
+            }
+        }
+
         public Tile[] chosenHexes;
         public Tile[] mouseHoveringOverGroup;
 
@@ -344,13 +353,26 @@ namespace monogame_cros_platform.classes
             return tiles.ElementAt(Random.Shared.Next() % tiles.Count);
         }
 
-         public void evenRowShift()
+        public void evenRowShiftA()
         {
             Vector2 columnDirection = Helper.direction(additionalRotationAngle);
             Vector2 rowDirection = Helper.direction(additionalRotationAngle + 90);
             Vector2 startingPoint = tiles.ElementAt(0).position;
-            if (type == TileTypeEnum.Square)
-            {
+                foreach (Tile tile in tiles)
+                {
+                    Vector2 squareColumnDirection = squareDistance * columnDirection;
+                    Vector2 squareRowDirection = squareDistance * rowDirection;
+                    float squareRowIntensity = Helper.intensity(tile.position - startingPoint, squareRowDirection);
+                    Vector2 move = Math.Round(squareRowIntensity) % 2 == 0 ? squareColumnDirection / 2 : Vector2.Zero;
+                    tile.position += move;
+                }
+        }
+        public void evenRowShiftB()
+        {
+            Vector2 columnDirection = Helper.direction(additionalRotationAngle);
+            Vector2 rowDirection = Helper.direction(additionalRotationAngle + 90);
+            Vector2 startingPoint = tiles.ElementAt(0).position;
+         
                 foreach (Tile tile in tiles)
                 {
                     Vector2 hexColumnDirection = hexagonDistance * columnDirection;
@@ -359,8 +381,15 @@ namespace monogame_cros_platform.classes
                     Vector2 move = Math.Round(hexRowIntensity) % 2 == 0 ? hexColumnDirection / 2 : Vector2.Zero;
                     tile.position -= move;
                 }
-            }
-            else
+        }
+
+
+        public void evenRowShift()
+        {
+            Vector2 columnDirection = Helper.direction(additionalRotationAngle);
+            Vector2 rowDirection = Helper.direction(additionalRotationAngle + 90);
+            Vector2 startingPoint = tiles.ElementAt(0).position;
+            if (type == TileTypeEnum.Square)
             {
                 foreach (Tile tile in tiles)
                 {
@@ -371,6 +400,45 @@ namespace monogame_cros_platform.classes
                     tile.position += move;
                 }
             }
+            else
+            {
+                foreach (Tile tile in tiles)
+                {
+                    Vector2 hexColumnDirection = hexagonDistance * columnDirection;
+                    Vector2 hexRowDirection = hexagonHeghth * rowDirection;
+                    float hexRowIntensity = Helper.intensity(tile.position - startingPoint, hexRowDirection);
+                    Vector2 move = Math.Round(hexRowIntensity) % 2 == 0 ? hexColumnDirection / 2 : Vector2.Zero;
+                    tile.position -= move;
+                }
+            }
+        }
+
+        public void adjustRowAndColumnDistancesA()
+        {
+            Vector2 columnDirection = Helper.direction(additionalRotationAngle);
+            Vector2 rowDirection = Helper.direction(additionalRotationAngle + 90);
+            Vector2 startingPoint = tiles.ElementAt(0).position;
+                foreach (Tile tile in tiles)
+                {
+                    float rowIntensity = Helper.intensity(tile.position, rowDirection);
+                    float columnIntensity = Helper.intensity(tile.position, columnDirection);
+                    tile.position = ((columnDirection * columnIntensity * squareDistance) / hexagonDistance) + ((rowDirection * rowIntensity * squareDistance) / hexagonHeghth);
+                }
+          
+        }
+
+        public void adjustRowAndColumnDistancesB()
+        {
+            Vector2 columnDirection = Helper.direction(additionalRotationAngle);
+            Vector2 rowDirection = Helper.direction(additionalRotationAngle + 90);
+            Vector2 startingPoint = tiles.ElementAt(0).position;
+                foreach (Tile tile in tiles)
+                {
+                    float rowIntensity = Helper.intensity(tile.position, rowDirection);
+                    float columnIntensity = Helper.intensity(tile.position, columnDirection);
+                    tile.position = ((columnDirection * columnIntensity * squareDistance) / hexagonDistance) + ((rowDirection * rowIntensity * squareDistance) / hexagonHeghth);
+                }
+         
         }
 
         public void adjustRowAndColumnDistances()
@@ -410,14 +478,16 @@ namespace monogame_cros_platform.classes
 
         public void transform(GameTime gameTime)
         {
-            transforming = true;
+            transforming = 1;
             transformTime = gameTime.ElapsedGameTime.TotalSeconds;
             if (type == TileTypeEnum.Hexagon) type = TileTypeEnum.Square; else type = TileTypeEnum.Hexagon;
             tilePrototype = points();
-            evenRowShift();
             adjustRowAndColumnDistances();
             centerTiles();
             setPoints();
+            evenRowShift();
+            centerTiles();
+            setNextPoints();
         }
 
         bool wasLeftMouseButtonDown = false;
@@ -450,12 +520,28 @@ namespace monogame_cros_platform.classes
                     mouseHoveringOverGroup = takeWithSameColour(tile);
                 }
             }
-            if (transforming)
+            if(transforming == 1 || transforming == 2) transformTime += gameTime.ElapsedGameTime.TotalSeconds;
+            if (transforming == 1)
             {
-                transformTime += gameTime.ElapsedGameTime.TotalSeconds;
                 if (transformTime > transformationLength)
                 {
-                    transforming = false;
+                    foreach (Tile tile in tiles)
+                    {
+                        tile.shiftPoints();
+                    }
+                    transforming = 2;
+                    transformTime = 0;
+                }
+            }
+            if (transforming == 2)
+            {
+                if (transformTime > transformationLength)
+                {
+                    foreach (Tile tile in tiles)
+                    {
+
+                    }
+                    transforming = 0;
                     transformTime = 0;
                 }
             }
