@@ -353,116 +353,55 @@ namespace monogame_cros_platform.classes
             return tiles.ElementAt(Random.Shared.Next() % tiles.Count);
         }
 
-        public void evenRowShiftA()
+     
+        public void evenRowShift(float columnDistance, float rowDistance, bool plus = true)
         {
-            Vector2 columnDirection = Helper.direction(additionalRotationAngle);
-            Vector2 rowDirection = Helper.direction(additionalRotationAngle + 90);
+            Vector2 columnDirection = columnDistance * Helper.direction(additionalRotationAngle);
+            Vector2 rowDirection = rowDistance * Helper.direction(additionalRotationAngle + 90);
             Vector2 startingPoint = tiles.ElementAt(0).position;
-                foreach (Tile tile in tiles)
-                {
-                    Vector2 squareColumnDirection = squareDistance * columnDirection;
-                    Vector2 squareRowDirection = squareDistance * rowDirection;
-                    float squareRowIntensity = Helper.intensity(tile.position - startingPoint, squareRowDirection);
-                    Vector2 move = Math.Round(squareRowIntensity) % 2 == 0 ? squareColumnDirection / 2 : Vector2.Zero;
-                    tile.position += move;
-                }
-        }
-        public void evenRowShiftB()
-        {
-            Vector2 columnDirection = Helper.direction(additionalRotationAngle);
-            Vector2 rowDirection = Helper.direction(additionalRotationAngle + 90);
-            Vector2 startingPoint = tiles.ElementAt(0).position;
-         
-                foreach (Tile tile in tiles)
-                {
-                    Vector2 hexColumnDirection = hexagonDistance * columnDirection;
-                    Vector2 hexRowDirection = hexagonHeghth * rowDirection;
-                    float hexRowIntensity = Helper.intensity(tile.position - startingPoint, hexRowDirection);
-                    Vector2 move = Math.Round(hexRowIntensity) % 2 == 0 ? hexColumnDirection / 2 : Vector2.Zero;
-                    tile.position -= move;
-                }
+            foreach (Tile tile in tiles)
+            {
+                float rowIntensity = Helper.intensity(tile.position - startingPoint, rowDirection);
+                Vector2 move = Math.Round(rowIntensity) % 2 == 0 ? columnDirection / 2 : Vector2.Zero;
+                if(plus) tile.position += move; else tile.position -= move;
+            }
         }
 
 
         public void evenRowShift()
         {
-            Vector2 columnDirection = Helper.direction(additionalRotationAngle);
-            Vector2 rowDirection = Helper.direction(additionalRotationAngle + 90);
-            Vector2 startingPoint = tiles.ElementAt(0).position;
             if (type == TileTypeEnum.Square)
             {
-                foreach (Tile tile in tiles)
-                {
-                    Vector2 squareColumnDirection = squareDistance * columnDirection;
-                    Vector2 squareRowDirection = squareDistance * rowDirection;
-                    float squareRowIntensity = Helper.intensity(tile.position - startingPoint, squareRowDirection);
-                    Vector2 move = Math.Round(squareRowIntensity) % 2 == 0 ? squareColumnDirection / 2 : Vector2.Zero;
-                    tile.position += move;
-                }
+                evenRowShift(squareDistance, squareDistance, true);
             }
             else
             {
-                foreach (Tile tile in tiles)
-                {
-                    Vector2 hexColumnDirection = hexagonDistance * columnDirection;
-                    Vector2 hexRowDirection = hexagonHeghth * rowDirection;
-                    float hexRowIntensity = Helper.intensity(tile.position - startingPoint, hexRowDirection);
-                    Vector2 move = Math.Round(hexRowIntensity) % 2 == 0 ? hexColumnDirection / 2 : Vector2.Zero;
-                    tile.position -= move;
-                }
+                evenRowShift(hexagonDistance, hexagonHeghth, false);
             }
         }
 
-        public void adjustRowAndColumnDistancesA()
+        public void strech(float columnFrom, float columnTo, float rowFrom, float rowTo)
         {
             Vector2 columnDirection = Helper.direction(additionalRotationAngle);
             Vector2 rowDirection = Helper.direction(additionalRotationAngle + 90);
             Vector2 startingPoint = tiles.ElementAt(0).position;
-                foreach (Tile tile in tiles)
-                {
-                    float rowIntensity = Helper.intensity(tile.position, rowDirection);
-                    float columnIntensity = Helper.intensity(tile.position, columnDirection);
-                    tile.position = ((columnDirection * columnIntensity * squareDistance) / hexagonDistance) + ((rowDirection * rowIntensity * squareDistance) / hexagonHeghth);
-                }
-          
-        }
-
-        public void adjustRowAndColumnDistancesB()
-        {
-            Vector2 columnDirection = Helper.direction(additionalRotationAngle);
-            Vector2 rowDirection = Helper.direction(additionalRotationAngle + 90);
-            Vector2 startingPoint = tiles.ElementAt(0).position;
-                foreach (Tile tile in tiles)
-                {
-                    float rowIntensity = Helper.intensity(tile.position, rowDirection);
-                    float columnIntensity = Helper.intensity(tile.position, columnDirection);
-                    tile.position = ((columnDirection * columnIntensity * squareDistance) / hexagonDistance) + ((rowDirection * rowIntensity * squareDistance) / hexagonHeghth);
-                }
-         
+            foreach (Tile tile in tiles)
+            {
+                float rowIntensity = Helper.intensity(tile.position, rowDirection);
+                float columnIntensity = Helper.intensity(tile.position, columnDirection);
+                tile.position = ((columnDirection * columnIntensity * columnTo) / columnFrom) + ((rowDirection * rowIntensity * rowTo) / rowFrom);
+            }
         }
 
         public void adjustRowAndColumnDistances()
         {
-            Vector2 columnDirection = Helper.direction(additionalRotationAngle);
-            Vector2 rowDirection = Helper.direction(additionalRotationAngle + 90);
-            Vector2 startingPoint = tiles.ElementAt(0).position;
             if (type == TileTypeEnum.Square)
             {
-                foreach (Tile tile in tiles)
-                {
-                    float rowIntensity = Helper.intensity(tile.position, rowDirection);
-                    float columnIntensity = Helper.intensity(tile.position, columnDirection);
-                    tile.position = ((columnDirection * columnIntensity * squareDistance) / hexagonDistance) + ((rowDirection * rowIntensity * squareDistance) / hexagonHeghth);
-                }
+                strech(hexagonDistance, squareDistance, hexagonHeghth, squareDistance);
             }
             else
             {
-                foreach (Tile tile in tiles)
-                {
-                    float rowIntensity = Helper.intensity(tile.position, rowDirection);
-                    float columnIntensity = Helper.intensity(tile.position, columnDirection);
-                    tile.position = ((columnDirection * columnIntensity * hexagonDistance) / squareDistance) + ((rowDirection * rowIntensity * hexagonHeghth) / squareDistance);
-                }
+                strech(squareDistance, hexagonDistance, squareDistance, hexagonHeghth);
             }
         }
 
