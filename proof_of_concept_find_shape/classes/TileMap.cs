@@ -27,7 +27,7 @@ namespace monogame_cros_platform.classes
 
         public int transforming = 0;
         public double transformTime = 0;
-        public double transformationLength = 0.25;
+        public double transformationLength = 0.4;
 
         public double hexagonPointAngleDifference = 60;
         public double hexagonStartingPointAngle = 30;
@@ -354,7 +354,7 @@ namespace monogame_cros_platform.classes
         }
 
      
-        public void evenRowShift(float columnDistance, float rowDistance, bool plus = true)
+        public void evenRowShiftGeneralised(float columnDistance, float rowDistance, bool plus = true)
         {
             Vector2 columnDirection = columnDistance * Helper.direction(additionalRotationAngle);
             Vector2 rowDirection = rowDistance * Helper.direction(additionalRotationAngle + 90);
@@ -367,20 +367,7 @@ namespace monogame_cros_platform.classes
             }
         }
 
-
-        public void evenRowShift()
-        {
-            if (type == TileTypeEnum.Square)
-            {
-                evenRowShift(squareDistance, squareDistance, true);
-            }
-            else
-            {
-                evenRowShift(hexagonDistance, hexagonHeghth, false);
-            }
-        }
-
-        public void strech(float columnFrom, float columnTo, float rowFrom, float rowTo)
+        public void adjustRowAndColumnDistancesGeneralised(float columnFrom, float columnTo, float rowFrom, float rowTo)
         {
             Vector2 columnDirection = Helper.direction(additionalRotationAngle);
             Vector2 rowDirection = Helper.direction(additionalRotationAngle + 90);
@@ -397,11 +384,11 @@ namespace monogame_cros_platform.classes
         {
             if (type == TileTypeEnum.Square)
             {
-                strech(hexagonDistance, squareDistance, hexagonHeghth, squareDistance);
+                adjustRowAndColumnDistancesGeneralised(hexagonDistance, squareDistance, hexagonHeghth, squareDistance);
             }
             else
             {
-                strech(squareDistance, hexagonDistance, squareDistance, hexagonHeghth);
+                adjustRowAndColumnDistancesGeneralised(squareDistance, hexagonDistance, squareDistance, hexagonHeghth);
             }
         }
 
@@ -415,18 +402,36 @@ namespace monogame_cros_platform.classes
             }
         }
 
+        public void transformPoints()
+        {
+            if(type == TileTypeEnum.Square)
+            {
+                tilePrototype = points();
+                adjustRowAndColumnDistances();
+                centerTiles();
+                setPoints();
+                evenRowShiftGeneralised(squareDistance, squareDistance, true);
+                centerTiles();
+                setNextPoints();
+            }
+            else
+            {
+                evenRowShiftGeneralised(squareDistance, squareDistance, false);
+                centerTiles();
+                setPoints();
+                tilePrototype = points();
+                adjustRowAndColumnDistances();
+                centerTiles();
+                setNextPoints();
+            }
+        }
+
         public void transform(GameTime gameTime)
         {
             transforming = 1;
             transformTime = gameTime.ElapsedGameTime.TotalSeconds;
             if (type == TileTypeEnum.Hexagon) type = TileTypeEnum.Square; else type = TileTypeEnum.Hexagon;
-            tilePrototype = points();
-            adjustRowAndColumnDistances();
-            centerTiles();
-            setPoints();
-            evenRowShift();
-            centerTiles();
-            setNextPoints();
+            transformPoints();
         }
 
         bool wasLeftMouseButtonDown = false;
