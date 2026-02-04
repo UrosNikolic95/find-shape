@@ -27,6 +27,13 @@ namespace monogame_cros_platform.classes
         public TileMap map;
         public MinMax minMax;
 
+        public TilePoints lastPoints
+        {
+            get {
+                return nextPoints != null ? nextPoints : currentPoints;
+            }
+        }
+
         public Color displayColor()
         {
             return map.mouseHoveringOverGroup != null && map.mouseHoveringOverGroup.Contains(this) ? Color.White : color;

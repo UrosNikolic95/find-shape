@@ -17,11 +17,19 @@ namespace monogame_cros_platform.classes
 {
     public class TileMap
     {
+        static float calcHexTileRadius()
+        {
+            float squareSurphase = (float)Math.Pow(2 * squareTileRadius, 2) / 2;
+            float triangleSurphase = squareSurphase / 6;
+            return (float)Math.Sqrt((triangleSurphase*4) / Math.Sqrt(3));
+        }
+
         public Color[] colorOptions = new Color[] { Color.Red, Color.Blue, Color.Yellow };
         public List<Tile> tiles = new List<Tile>();
         public GraphicsDevice gd;
         public float padding = 1;
-        public float tileRadius = 20;
+        public static float squareTileRadius = 20;
+        public float hexTileRadius = calcHexTileRadius();
         public TileTypeEnum type = TileTypeEnum.Hexagon;
         public float mapWidening = 100;
 
@@ -62,12 +70,12 @@ namespace monogame_cros_platform.classes
 
         public Vector2 vectorHex(int i)
         {
-            return (tileRadius - padding) * Helper.direction(i * hexagonPointAngleDifference + hexagonStartingPointAngle + additionalRotationAngle);
+            return (hexTileRadius - padding) * Helper.direction(i * hexagonPointAngleDifference + hexagonStartingPointAngle + additionalRotationAngle);
         }
 
         public Vector2 vectorSq(int i)
         {
-            return (tileRadius - padding) * Helper.direction(i * squarePointAngleDifference + squareStartingPointAngle + additionalRotationAngle);
+            return (squareTileRadius - padding) * Helper.direction(i * squarePointAngleDifference + squareStartingPointAngle + additionalRotationAngle);
         }
 
         public Vector2 neighburDifferenceHex(int i)
@@ -149,7 +157,7 @@ namespace monogame_cros_platform.classes
         public float hexagonEdgeDistance
         {
             get {
-                return ha * tileRadius;
+                return ha * hexTileRadius;
             }
         }
 
@@ -157,7 +165,7 @@ namespace monogame_cros_platform.classes
         {
             get
             {
-                return tileRadius / sqrt2;
+                return squareTileRadius / sqrt2;
             }
         }
 
@@ -187,11 +195,11 @@ namespace monogame_cros_platform.classes
             }
         }
 
-        public float hexagonHeghth
+        public float hexagonHegth
         {
             get
             {
-                return (tileRadius * 3) / 2;
+                return (hexTileRadius * 3) / 2;
             }
         }
 
@@ -384,11 +392,11 @@ namespace monogame_cros_platform.classes
         {
             if (type == TileTypeEnum.Square)
             {
-                adjustRowAndColumnDistancesGeneralised(hexagonDistance, squareDistance, hexagonHeghth, squareDistance);
+                adjustRowAndColumnDistancesGeneralised(hexagonDistance, squareDistance, hexagonHegth, squareDistance);
             }
             else
             {
-                adjustRowAndColumnDistancesGeneralised(squareDistance, hexagonDistance, squareDistance, hexagonHeghth);
+                adjustRowAndColumnDistancesGeneralised(squareDistance, hexagonDistance, squareDistance, hexagonHegth);
             }
         }
 
@@ -494,16 +502,17 @@ namespace monogame_cros_platform.classes
                 tile.Draw();
             }
 
-            TilePoints[] tps = chosenHexes.Select(el => el.currentPoints).ToArray();
+            TilePoints[] tps = chosenHexes.Select(el => el.lastPoints).ToArray();
             MinMax mm = new MinMax(tps);
             float width = mm.xMax - mm.xMin;
             float height = mm.yMax - mm.yMin;
+            float largerSide = width < height ? width : height;
             Vector2 minV = new Vector2(mm.xMin, mm.yMin);
             Vector2 padding = new Vector2(10, 10);
-            float scale = 100 / width;
+            float scale = 100 / largerSide;
             foreach (Tile tile in chosenHexes)
             {
-                TilePoints tp = tile.currentPoints;
+                TilePoints tp = tile.lastPoints;
                 TilePoints tp1 = tp + (-minV);
                 TilePoints tp2 = tp1 * scale;
                 TilePoints tp3 = tp2 + padding;
