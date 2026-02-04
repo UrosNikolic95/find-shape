@@ -25,6 +25,7 @@ namespace monogame_cros_platform
         protected override void Initialize()
         {
             base.Initialize();
+            Window.Title = "Proof of concept: Find shape";
         }
 
         protected override void LoadContent()
