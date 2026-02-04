@@ -19,9 +19,7 @@ namespace monogame_cros_platform.classes
     {
         static float calcHexTileRadius()
         {
-            float squareSurphase = (float)Math.Pow(2 * squareTileRadius, 2) / 2;
-            float triangleSurphase = squareSurphase / 6;
-            return (float)Math.Sqrt((triangleSurphase*4) / Math.Sqrt(3));
+            return squareTileRadius / (float)(Math.Pow(27, 1 / 4));
         }
 
         public Color[] colorOptions = new Color[] { Color.Red, Color.Blue, Color.Yellow };
