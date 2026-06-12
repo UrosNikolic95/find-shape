@@ -12,7 +12,6 @@ namespace monogame_cros_platform
     public class AppGame : Game
     {
         private GraphicsDeviceManager _graphics;
-        private SpriteBatch _spriteBatch;
         private TileMap map;
 
         public AppGame()
@@ -30,13 +29,12 @@ namespace monogame_cros_platform
 
         protected override void LoadContent()
         {
-            _spriteBatch = new SpriteBatch(GraphicsDevice);
             map = new TileMap(GraphicsDevice);
         }
 
         protected override void Update(GameTime gameTime)
         {
-            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
+            if (Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
             base.Update(gameTime);
@@ -53,8 +51,5 @@ namespace monogame_cros_platform
 
             base.Draw(gameTime);
         }
-
-
-      
     }
 }
