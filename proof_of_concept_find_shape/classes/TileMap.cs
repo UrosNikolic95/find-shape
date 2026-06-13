@@ -463,11 +463,13 @@ namespace monogame_cros_platform.classes
                     }
                 }
             }
-            foreach(Tile tile in tiles)
+            mouseHoveringOverGroup = null;
+            foreach (Tile tile in tiles)
             {
                 if (tile.mouseHovering())
                 {
                     mouseHoveringOverGroup = takeWithSameColour(tile);
+                    break;
                 }
             }
             if(transforming == 1 || transforming == 2) transformTime += gameTime.ElapsedGameTime.TotalSeconds;
