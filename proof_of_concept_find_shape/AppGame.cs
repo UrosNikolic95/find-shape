@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Drawing;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using monogame_cros_platform.classes;
@@ -12,6 +13,8 @@ namespace monogame_cros_platform
     public class AppGame : Game
     {
         private GraphicsDeviceManager _graphics;
+        public static SoundEffect sharpSound;
+        public static SoundEffect softSound;
         private TileMap map;
 
         public AppGame()
@@ -29,6 +32,8 @@ namespace monogame_cros_platform
 
         protected override void LoadContent()
         {
+            sharpSound = Content.Load<SoundEffect>("sharp-sound");
+            softSound = Content.Load<SoundEffect>("soft-sound");
             map = new TileMap(GraphicsDevice);
         }
 

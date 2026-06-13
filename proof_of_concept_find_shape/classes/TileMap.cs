@@ -50,10 +50,10 @@ namespace monogame_cros_platform.classes
 
         public void moveAdditionalRotation()
         {
-            if (type == TileTypeEnum.Hexagon) 
+            if (type == TileTypeEnum.Hexagon)
             {
                 additionalRotationAngle += hexagonPointAngleDifference;
-            } 
+            }
             else
             {
                 additionalRotationAngle += squarePointAngleDifference;
@@ -83,7 +83,7 @@ namespace monogame_cros_platform.classes
 
         public Vector2 neighburDifferenceSq(int i)
         {
-            return   squareEdgeDistance * 2 * Helper.direction(i * squarePointAngleDifference + additionalRotationAngle);
+            return squareEdgeDistance * 2 * Helper.direction(i * squarePointAngleDifference + additionalRotationAngle);
         }
 
         public Vector2 neighburDifference(int i)
@@ -98,7 +98,7 @@ namespace monogame_cros_platform.classes
         {
             if (type == TileTypeEnum.Hexagon) return hexagonPoints();
             if (type == TileTypeEnum.Square) return squarePoints();
-            return null; 
+            return null;
         }
 
         public Vector2[] hexagonPoints()
@@ -131,7 +131,7 @@ namespace monogame_cros_platform.classes
         {
             get
             {
-                return Math.Max(0, Math.Min((float)(transformTime / transformationLength),1));
+                return Math.Max(0, Math.Min((float)(transformTime / transformationLength), 1));
             }
         }
 
@@ -154,7 +154,8 @@ namespace monogame_cros_platform.classes
 
         public float hexagonEdgeDistance
         {
-            get {
+            get
+            {
                 return ha * hexTileRadius;
             }
         }
@@ -229,7 +230,7 @@ namespace monogame_cros_platform.classes
                 return 0;
             }
         }
-        
+
 
         public Vector2 direction(int i)
         {
@@ -277,7 +278,8 @@ namespace monogame_cros_platform.classes
             this.type = TileTypeEnum.Square;
             this.gd = gd;
             this.tilePrototype = points();
-            for (int row = 0; row < 11; row++) {
+            for (int row = 0; row < 11; row++)
+            {
                 for (int column = 0; column < 11; column++)
                 {
                     Tile t = new Tile()
@@ -302,12 +304,14 @@ namespace monogame_cros_platform.classes
             toProcess.Enqueue(start);
             HashSet<Tile> visited = new HashSet<Tile>();
             visited.Add(start);
-            while (toProcess.Count > 0) { 
+            while (toProcess.Count > 0)
+            {
                 Tile tile = toProcess.Dequeue();
                 for (int i = 0; i < neighburs; i++)
                 {
                     Tile next = tile.getNeighbur(i);
-                    if (next != null && !visited.Contains(next) && next.color == start.color) {
+                    if (next != null && !visited.Contains(next) && next.color == start.color)
+                    {
                         toProcess.Enqueue(next);
                         visited.Add(next);
                     }
@@ -322,7 +326,7 @@ namespace monogame_cros_platform.classes
             HashSet<Tile> visited = new();
             foreach (Tile tile in tiles)
             {
-                if(visited.Contains(tile)) continue;
+                if (visited.Contains(tile)) continue;
                 Tile[] group = takeWithSameColour(tile);
                 visited.UnionWith(group);
                 groups.Add(group);
@@ -334,13 +338,14 @@ namespace monogame_cros_platform.classes
         {
             Tile[][] groups = groupTiles();
             Dictionary<int, int> counted = new Dictionary<int, int>();
-            foreach (Tile[] group in groups) {
-               if(!counted.ContainsKey(group.Length)) counted[group.Length] = 0;
-               counted[group.Length]++;
+            foreach (Tile[] group in groups)
+            {
+                if (!counted.ContainsKey(group.Length)) counted[group.Length] = 0;
+                counted[group.Length]++;
             }
             foreach (KeyValuePair<int, int> c in counted)
             {
-                if(c.Value != 1)
+                if (c.Value != 1)
                 {
                     counted.Remove(c.Key);
                 }
@@ -359,7 +364,7 @@ namespace monogame_cros_platform.classes
             return tiles.ElementAt(Random.Shared.Next() % tiles.Count);
         }
 
-     
+
         public void evenRowShiftGeneralised(float columnDistance, float rowDistance, bool plus = true)
         {
             Vector2 columnDirection = columnDistance * Helper.direction(additionalRotationAngle);
@@ -369,7 +374,7 @@ namespace monogame_cros_platform.classes
             {
                 float rowIntensity = Helper.intensity(tile.position - startingPoint, rowDirection);
                 Vector2 move = Math.Round(rowIntensity) % 2 == 0 ? columnDirection / 2 : Vector2.Zero;
-                if(plus) tile.position += move; else tile.position -= move;
+                if (plus) tile.position += move; else tile.position -= move;
             }
         }
 
@@ -410,7 +415,7 @@ namespace monogame_cros_platform.classes
 
         public void transformPoints()
         {
-            if(type == TileTypeEnum.Square)
+            if (type == TileTypeEnum.Square)
             {
                 tilePrototype = points();
                 adjustRowAndColumnDistances();
@@ -452,17 +457,23 @@ namespace monogame_cros_platform.classes
             if (Mouse.GetState().LeftButton == ButtonState.Pressed && !wasLeftMouseButtonDown)
             {
                 wasLeftMouseButtonDown = true;
+                bool clickedChosenHexes = false;
                 foreach (Tile tile in tiles)
                 {
                     if (tile.mouseHovering() && chosenHexes.Contains(tile))
                     {
+                        clickedChosenHexes = true;
+                        AppGame.sharpSound.Play();
                         rotateAll();
                         transform(gameTime);
                         chosenHexes = pickUniq();
                         break;
                     }
                 }
+                if (!clickedChosenHexes) AppGame.softSound.Play();
             }
+
+            var oldMouseHoveringOverGroup = mouseHoveringOverGroup;
             mouseHoveringOverGroup = null;
             foreach (Tile tile in tiles)
             {
@@ -472,7 +483,7 @@ namespace monogame_cros_platform.classes
                     break;
                 }
             }
-            if(transforming == 1 || transforming == 2) transformTime += gameTime.ElapsedGameTime.TotalSeconds;
+            if (transforming == 1 || transforming == 2) transformTime += gameTime.ElapsedGameTime.TotalSeconds;
             if (transforming == 1)
             {
                 if (transformTime > transformationLength)
